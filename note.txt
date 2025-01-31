@@ -1,0 +1,10 @@
+1 . Set up the app instances
+2 . Create the model for the database
+3 . Connect app and database
+4 . Create the api for login, signup 
+5 . Security token by JWT 
+6. Before 5th step do data validation - it is important because for the columns like roles and status this should not be manipulated byt the front user.
+7. Setup jwrt security for login and signup and needs in app.py as well. then put required decorator in needed class. 
+8. In requried classes, write 'Bearer {token-value}' in Authorization in HTTP Header in Thunderclient 
+9. Create Category class api
+10. Do authorization to do CRUD on category. (only admin can do CRUD on category)

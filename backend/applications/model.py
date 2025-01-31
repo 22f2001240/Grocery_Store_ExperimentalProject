@@ -8,8 +8,8 @@ class Users(db.Model):
     __tablename__="users"
     id=db.Column(db.Integer,primary_key=True)
     email_id=db.Column(db.String,unique=True,nullable=False,default="example@gmail.com")
-    password=db.Column(db.String,nullable=False)
-    full_name=db.Column(db.String,nullable=False)
+    password=db.Column(db.String(10),nullable=False)
+    name=db.Column(db.String,nullable=False)
     role=db.Column(db.String,default='customer') #customer, admin, manager 
     status=db.Column(db.String,default='active') #pending,active
     cart_id=db.relationship("Cart",cascade="all,delete-orphan",backref="users",lazy=True)
@@ -25,6 +25,12 @@ class Category(db.Model):
     name=db.Column(db.String,nullable=False)
     product_ids=db.relationship("Product",cascade="all,delete-orphan",backref="category",lazy=True)
 
+    def convert_to_json(self):
+        return{
+            "id":self.id,
+            "name":self.name
+        }
+
 #Entity 3 - Product table
 class Product(db.Model):
     __tablename__="product"
@@ -36,8 +42,22 @@ class Product(db.Model):
     stock=db.Column(db.Integer,nullable=False)
     sold=db.Column(db.Integer,nullable=False) #num of sold items
     category_id=db.Column(db.Integer,db.ForeignKey("category.id"),nullable=False)
+    manager_id=db.Column(db.Integer,db.ForeignKey("users.id"),nullable=False)
+    #
     cart_ids=db.relationship("Cart",cascade="all,delete-orphan",backref="product",lazy=True)  #If it is not there then while delete parent it will show integrity error as foereign keys are marked as nullable =False
     #orders_ids=db.relationship("Orders",cascade="all,delete-orphan",backref="product",lazy=True)
+    
+    def convert_to_json(self):
+        return{
+            "id":self.id,
+            "name":self.name,
+            "description":self.description,
+            "price":self.price,
+            "unit":self.unit,
+            "stock":self.stock,
+            "number_of_sold_items":self.sold,
+            "category_id":self.category_id
+        }
 
 #Entity 4 - Cart table
 class Cart(db.Model):
