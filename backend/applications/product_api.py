@@ -5,16 +5,6 @@ from .model import *
 import re
 from functools import wraps
 
-# id=db.Column(db.Integer,primary_key=True)
-#     name=db.Column(db.String,nullable=False)
-#     description=db.Column(db.String(),nullable=False)
-#     price=db.Column(db.Integer,nullable=False)
-#     unit=db.Column(db.String,nullable=False) #kg,g,m
-#     stock=db.Column(db.Integer,nullable=False)
-#     sold=db.Column(db.Integer,nullable=False) #num of sold items
-#     category_id=db.Column(db.Integer,db.ForeignKey("category.id"),nullable=False)
-#     manager_id=db.Column(db.Integer,db.ForeignKey("user.id"),nullable=False)
-
 def roles_required(allowed_roles): #Authorization RBAC-Role Based Access Control
     def decorator(fn):
         @wraps(fn)
@@ -28,8 +18,11 @@ def roles_required(allowed_roles): #Authorization RBAC-Role Based Access Control
     
 class ProductAPI(Resource):
     @jwt_required()  
-    def get(self):        
-        products=Product.query.all()
+    def get(self): 
+        if get_jwt().get("role") in ['admin','customer']:       
+            products=Product.query.all()
+        if get_jwt().get("role") == 'manager':
+            products=Product.query.filter_by(manager_id=get_jwt_identity())
         products_json=[]
         for prod in products:
             products_json.append(prod.convert_to_json()) 
@@ -74,11 +67,11 @@ class ProductAPI(Resource):
         
         data=request.json
         product.name = data.get('name').strip() if data.get('name').strip() else product.name
-        product.description = data.get('description').strip() if data.get('description').strip() else product.description
-        product.price = data.get('price').strip() if data.get('price').strip() else product.price
-        product.unit = data.get('unit').strip() if data.get('unit').strip() else product.unit
-        product.stock = data.get('stock').strip() if data.get('stock').strip() else product.stock
-        product.sold = data.get('sold').strip() if data.get('sold').strip() else product.sold
+        product.description = data.get('description') if data.get('description') else product.description
+        product.price = data.get('price') if data.get('price') else product.price
+        product.unit = data.get('unit') if data.get('unit') else product.unit
+        product.stock = data.get('stock') if data.get('stock') else product.stock
+        product.sold = data.get('sold') if data.get('sold') else product.sold
         db.session.commit()
         return {'message':"Product updated successfully"},200
     

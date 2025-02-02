@@ -19,11 +19,11 @@ def roles_required(allowed_roles): #Authorization RBAC-Role Based Access Control
 class CategoryAPI(Resource):
     @jwt_required()  
     def get(self):        
-        categories=Category.query.all()
-        category_json=[]
-        for cat in categories:
-            category_json.append(cat.convert_to_json()) 
-        return category_json, 200
+        categorie_requests=Category_request.query.all()
+        category_req_json=[]
+        for cat in categorie_requests:
+            category_req_json.append(cat.convert_to_json()) 
+        return category_req_json, 200
       
     @jwt_required()    #Only admin can create the category. To do this authorization is required instead of autherization. We have to check if the authenticated user has the permission to access this content / page.
     @roles_required(['admin'])

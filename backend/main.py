@@ -6,7 +6,9 @@ from applications.api import *
 from applications.auth_api import *
 from applications.category_api import *
 from applications.product_api import *
+from applications.cart_api import *
 from applications.purchase_api import *
+from applications.category_request_api import *
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
 
@@ -44,6 +46,10 @@ api.add_resource(LoginAPI,'/api/login','/api/approve/<int:manager_id>')
 api.add_resource(SignupAPI,'/api/signup')
 api.add_resource(CategoryAPI,'/api/category','/api/category/<int:category_id>')
 api.add_resource(ProductAPI,'/api/product','/api/product/<int:product_id>')
+api.add_resource(CartAPI,'/api/cart','/api/cart/<int:cart_id>')
+api.add_resource(OrderAPI,'/api/order')
+api.add_resource(CategoryRequestAPI,'/api/category/request')
+api.add_resource(CategoryApproveAPI,'/api/category/request/action')
 
 if __name__=='__main__':
     db.create_all()

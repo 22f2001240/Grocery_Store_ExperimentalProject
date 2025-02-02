@@ -14,8 +14,7 @@ class Users(db.Model):
     status=db.Column(db.String,default='active') #pending,active
     cart_id=db.relationship("Cart",cascade="all,delete-orphan",backref="users",lazy=True)
     category_request_ids=db.relationship("Category_request",backref="users",lazy=True)
-
-    #orders_ids=db.relationship("Orders",cascade="all,delete-orphan",backref="users",lazy=True)
+    orders_ids=db.relationship("Orders",cascade="all,delete-orphan",backref="users",lazy=True)
     #last_seen=db.Column(db.String(),default=datetime.now(),nullable=False) #For whther the user visited the site or not
 
 #Entity 2 - Category table
@@ -45,7 +44,7 @@ class Product(db.Model):
     manager_id=db.Column(db.Integer,db.ForeignKey("users.id"),nullable=False)
     #
     cart_ids=db.relationship("Cart",cascade="all,delete-orphan",backref="product",lazy=True)  #If it is not there then while delete parent it will show integrity error as foereign keys are marked as nullable =False
-    #orders_ids=db.relationship("Orders",cascade="all,delete-orphan",backref="product",lazy=True)
+    orders_ids=db.relationship("Orders",cascade="all,delete-orphan",backref="product",lazy=True)
     
     def convert_to_json(self):
         return{
@@ -67,6 +66,16 @@ class Cart(db.Model):
     user_id=db.Column(db.Integer,db.ForeignKey("users.id"),nullable=False)
     quantity=db.Column(db.Integer,nullable=False)
 
+    def convert_to_json(self):
+        return{
+            "id":self.id,
+            "quantity":self.quantity,
+            "product_id":self.product_id,
+            "product_name":self.product.name,
+            "product_price":self.product.price,
+            "product_unit":self.product.unit,
+        }
+
 class Orders(db.Model):
     __tablename__="orders"
     id=db.Column(db.Integer,primary_key=True)
@@ -74,6 +83,17 @@ class Orders(db.Model):
     user_id=db.Column(db.Integer,db.ForeignKey("users.id"),nullable=False)
     quantity=db.Column(db.Integer,nullable=False)
     date_of_purchase=db.Column(db.String,default=datetime.now(),nullable=False)
+
+    def convert_to_json(self):
+        return{
+            "id":self.id,
+            "quantity":self.quantity,
+            "product_id":self.product_id,
+            "product_name":self.product.name,
+            "product_price":self.product.price,
+            "product_unit":self.product.unit,
+            "date_of_purchase":self.date_of_purchase,
+        }
 
 #Entity 6 - CategoryRequest table
 class Category_request(db.Model):
@@ -83,3 +103,11 @@ class Category_request(db.Model):
     category_id=db.Column(db.Integer,nullable=True)
     action=db.Column(db.String,nullable=False) #CRUD
     manager_id=db.Column(db.Integer,db.ForeignKey("users.id"),nullable=False)
+    def convert_to_json(self):
+        return{
+            "id":self.id,
+            "name":self.name,
+            "category_id":self.category_id,
+            "action":self.action,
+            "manager_id":self.manager_id
+        }
