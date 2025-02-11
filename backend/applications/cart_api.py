@@ -4,6 +4,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from .model import *
 import re
 from functools import wraps
+from .api import *
 
 def roles_required(allowed_roles): 
     def decorator(fn):
@@ -19,6 +20,7 @@ def roles_required(allowed_roles):
 class CartAPI(Resource):
     @jwt_required()  
     @roles_required(['customer'])
+    @cache.cached(timeout=120)
     def get(self):  
         current_user_id=get_jwt_identity()     
         carts=Cart.query.all()

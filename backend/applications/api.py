@@ -4,14 +4,20 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from .model import *
 import re
 from functools import wraps
+from flask_caching import Cache
+import time
 
-#200-okey , 201-create a new record,404-not found, 400-bad request, 401-authentication issue, 403 auth, 405-method not found
-        
+cache=Cache()
+
+
+
+
 class WelcomeAPI(Resource):
     @jwt_required()
     def get(self):
         print(get_jwt().get("role"))
         return {'message':'Hello, This is GroceryStore!'},200
+    
     def post(self):
         data=request.json #or can use request.get_json()
         print(request)
@@ -20,6 +26,12 @@ class WelcomeAPI(Resource):
         return {'message':msg},200
     
 
+
+
+
+
     #     current_user=get_jwt_identity()
     #     if current_user['role']!= 'admin': # Authentication
     #         return {'message':'Access Denied'},401
+
+    #200-okey , 201-create a new record,404-not found, 400-bad request, 401-authentication issue, 403 auth, 405-method not found

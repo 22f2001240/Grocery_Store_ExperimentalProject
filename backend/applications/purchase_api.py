@@ -4,6 +4,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from .model import *
 import re
 from functools import wraps
+from .api import *
 
 def roles_required(allowed_roles): 
     def decorator(fn):
@@ -19,6 +20,7 @@ def roles_required(allowed_roles):
 class OrderAPI(Resource):
     @jwt_required()  
     @roles_required(['customer'])
+    @cache.cached(timeout=120)
     def get(self):  
         current_user_id=get_jwt_identity()     
         orders=Orders.query.filter_by(user_id=current_user_id).all()
@@ -36,6 +38,12 @@ class OrderAPI(Resource):
             return {'message':"Your cart is empty"},400
         item_list=[]
         for item in cart_items:
+            product=Product.query.get(item.product_id)
+            quant=product.stock
+            if item.quantity > quant:
+                return {'message':"Out of stock !!"},400
+            product.stock=quant-item.quantity
+            product.sold=product.sold+item.quantity
             new_order=Orders(product_id=item.product_id,quantity=item.quantity,user_id=current_user_id)
             db.session.add(new_order)
             db.session.delete(item)

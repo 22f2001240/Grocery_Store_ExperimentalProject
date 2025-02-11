@@ -4,6 +4,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from .model import *
 import re
 from functools import wraps
+from .api import *
 
 def roles_required(allowed_roles): #Authorization RBAC-Role Based Access Control
     def decorator(fn):
@@ -18,6 +19,7 @@ def roles_required(allowed_roles): #Authorization RBAC-Role Based Access Control
     
 class CategoryAPI(Resource):
     @jwt_required()  
+    @cache.cached(timeout=120)
     def get(self):        
         categorie_requests=Category_request.query.all()
         category_req_json=[]

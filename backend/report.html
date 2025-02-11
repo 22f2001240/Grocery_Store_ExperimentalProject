@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weekly Order Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h2 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+    </style>
+</head>
+<body>
+    <h2>Hello {{ username }},</h2>
+    <p>Here is your order report for this week:</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Product ID</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Unit</th>
+                <th>Date of Purchase</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in data %}
+            <tr>
+                <td>{{ order.product_id }}</td>
+                <td>{{ product_name }}</td>
+                <td>{{ order.quantity }}</td>
+                <td>${{ order.product_price }}</td>
+                <td>{{ order.product_unit }}</td>
+                <td>{{ order.date_of_purchase }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>Thank you for shopping with us!</p>
+</body>
+</html>
+
+

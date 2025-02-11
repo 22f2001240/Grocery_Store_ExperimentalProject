@@ -2,8 +2,10 @@ from flask import Flask,request,current_app as app,flash,jsonify
 from flask_restful import Api, Resource
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity,get_jwt #using JWT for the security
 from .model import *
+from .task import data_export
 import re
 from functools import wraps
+from .api import *
 
 def roles_required(allowed_roles): #Authorization RBAC-Role Based Access Control
     def decorator(fn):
@@ -18,6 +20,7 @@ def roles_required(allowed_roles): #Authorization RBAC-Role Based Access Control
     
 class ProductAPI(Resource):
     @jwt_required()  
+    @cache.cached(timeout=120)
     def get(self): 
         if get_jwt().get("role") in ['admin','customer']:       
             products=Product.query.all()
@@ -87,3 +90,18 @@ class ProductAPI(Resource):
         db.session.delete(product)
         db.session.commit()
         return {'message':"Product deleted successfully"},200
+
+# To call the export data of products for each manager from task
+class ExportDataAPI(Resource):
+    @jwt_required()
+    def get(self): 
+        if get_jwt().get("role") != 'manager':
+            return {'message':'Access Denied'}, 401
+        products=Product.query.filter_by(manager_id=get_jwt_identity()).all()
+        manager=Users.query.get(get_jwt_identity())
+        if manager:
+            product_details=[]
+            for product in products:
+                product_details.append({'name':product.name,'description':product.description,'price':product.price,'unit':product.unit,'stock':product.stock,'sold':product.sold})
+            data_export(product_details,manager.email_id)
+        return {"message":"Your data export task has been initiated, Please check your inbox"},200

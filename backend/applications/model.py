@@ -102,6 +102,7 @@ class Category_request(db.Model):
     name=db.Column(db.String,nullable=True)
     category_id=db.Column(db.Integer,nullable=True)
     action=db.Column(db.String,nullable=False) #CRUD
+    status=db.Column(db.String,nullable=True) #approved rejected
     manager_id=db.Column(db.Integer,db.ForeignKey("users.id"),nullable=False)
     def convert_to_json(self):
         return{
@@ -109,5 +110,6 @@ class Category_request(db.Model):
             "name":self.name,
             "category_id":self.category_id,
             "action":self.action,
+            "status":self.status,
             "manager_id":self.manager_id
         }

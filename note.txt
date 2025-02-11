@@ -8,3 +8,33 @@
 8. In requried classes, write 'Bearer {token-value}' in Authorization in HTTP Header in Thunderclient 
 9. Create Category class api
 10. Do authorization to do CRUD on category. (only admin can do CRUD on category)
+11. Setup every backend apis for all the models
+12. pip install flask_caching then setup cache and its routes
+13. Setup Redis :
+    sudo apt install redis-server
+    pip install redis
+14 type redis-server in wsl then wwe can see the redis activation.
+15 write a test route in main.py and check the cache
+16 Setup celery task for flask now. we use beat for the scheduled task.
+    create a worker file : It will handle the backend part for celery. Like if we want to send a mail, worker will send the mail
+    connect this worker file with the main.py
+17 Setup a celery  beat
+    create a task file
+18 run celery by using the command: celery -A main.celery worker --loglevel=info
+19 celery -A main.celery beat --loglevel=info - use for activate beat. 
+20 redis-server, python3 main.py, celery -A main.celery worker --loglevel=info, celery -A main.celery beat --loglevel=info all these things are done in 4 different wsl
+21 Setup the task fo sending monthly report as mail for each customer. And send the mail by using smtp
+    Make a report.html page and its cussesponding urls in task.
+    Add the smtp function to get the mail
+22 Run one more wsl the command is : mailhog
+23 Setup user triggered async job - export as csv (only for the store managers) - Mail a csv file which contains the product details for each manager
+    create a function to export the csv in task and send it as a mail
+    call this function from the product_api to get the product details
+    the download file will be there in the MIME part of mailhog. we should take the application/octet-stream file from there
+
+5 terminals - redis-server, python3 main.py, celery -A main.celery worker --loglevel=info, celery -A main.celery beat --loglevel=info, mailhog
+________________________________________________ Backend is over ________________________________________________
+
+Setup Frontend part:
+
+1 In js, document.getElementById('id_name') will call that particular id from html to console

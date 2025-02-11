@@ -44,9 +44,11 @@ class LoginAPI(Resource):
         manager=Users.query.get(manager_id)
         if not manager:
             return {'message':'Manager does not exist'},404
-        manager.status='active'
-        db.session.commit()
-        return {'message':'Manager approved successfuly'},200
+        if manager:
+            manager.status='active'
+            db.session.commit()
+            return {'message':'Manager approved successfuly'},200
+        return {'message':'Please check'},400
 
 class SignupAPI(Resource):  #login and signup use post method. but for single class can only use one post
     def post(self):

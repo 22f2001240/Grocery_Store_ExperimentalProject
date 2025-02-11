@@ -4,6 +4,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from .model import *
 import re
 from functools import wraps
+from .api import *
 
 def roles_required(allowed_roles): 
     def decorator(fn):
@@ -19,6 +20,7 @@ def roles_required(allowed_roles):
 class CategoryRequestAPI(Resource):
     @jwt_required()  
     @roles_required(['admin','manager'])
+    @cache.cached(timeout=120)
     def get(self):  
         current_user_id=get_jwt_identity()     
         request_json=[]
@@ -74,6 +76,8 @@ class CategoryApproveAPI(Resource):
             return {"message":"Valid action field and request id is required"},400
         cat_req=Category_request.query.get(req_id)
         if Action =="APPROVE":
+            cat_req.status="APPROVED"
+            db.session.commit()
             if cat_req.action =='CREATE':
                 new_category=Category(name=cat_req.name)
                 db.session.add(new_category)
@@ -93,6 +97,9 @@ class CategoryApproveAPI(Resource):
                     db.session.commit()
                     return {"message":"Category deleted successfuly"},200
                 return {"message":"Category does not exist"},404
+        else:
+            cat_req.status="REJECTED"
+            db.session.commit()
 
 
 
