@@ -11,8 +11,8 @@ def roles_required(allowed_roles):
         @wraps(fn)
         @jwt_required()
         def wrapper(*args,**kwargs):
-            if get_jwt().get("role") not in allowed_roles:
-                return {"message":"Access denied!"},403
+            if get_jwt_identity().get('role') not in allowed_roles:
+                return {"message":get_jwt_identity().get('role')},403
             return fn(*args,**kwargs)
         return wrapper
     return decorator
@@ -22,7 +22,7 @@ class OrderAPI(Resource):
     @roles_required(['customer'])
     @cache.cached(timeout=120)
     def get(self):  
-        current_user_id=get_jwt_identity()     
+        current_user_id=get_jwt_identity().get('user_id')   
         orders=Orders.query.filter_by(user_id=current_user_id).all()
         orders_json=[]
         for order in orders:
@@ -32,7 +32,7 @@ class OrderAPI(Resource):
     @jwt_required()    
     @roles_required(['customer'])
     def post(self):
-        current_user_id=get_jwt_identity()
+        current_user_id=get_jwt_identity().get('user_id')
         cart_items=Cart.query.filter_by(user_id=current_user_id).all()
         if len(cart_items) < 1:
             return {'message':"Your cart is empty"},400
@@ -48,6 +48,7 @@ class OrderAPI(Resource):
             db.session.add(new_order)
             db.session.delete(item)
         db.session.commit()
+        
         return {'message':"Order Successful.Thank you shopping!!"},201
         #     item_list.append({'id':item.id,'quantity':item.quantity})
         # return {'message':item_list},201

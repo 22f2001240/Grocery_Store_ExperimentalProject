@@ -33,8 +33,85 @@
     the download file will be there in the MIME part of mailhog. we should take the application/octet-stream file from there
 
 5 terminals - redis-server, python3 main.py, celery -A main.celery worker --loglevel=info, celery -A main.celery beat --loglevel=info, mailhog
+    http://172.23.10.90:8025/ use this to see the mail
+6 Installing virtual environment in backend is by 
+    cd backend
+    python3 -m venv ubuvenv 
+    Run it by source ubuvenv/bin/activate
+    And install the things - pip3 install flask flask_restful flask_sqlalchemy redis celery flask_caching flask_jwt_extended
 ________________________________________________ Backend is over ________________________________________________
 
-Setup Frontend part:
+Setup Frontend part: Vue CLI
 
-1 In js, document.getElementById('id_name') will call that particular id from html to console
+1 Create an app using the command - npm create vue@latest 
+    Make sure the node and npm are installed
+    except 'add vue router for single page application development' give No as asnwer. after entering the above cmd.
+    Then give name of project as frontend. then only it will create everything inside the frontend folder.
+    Now will get 3 folders in the frontend folder (.vscode, publicm src) and 6 files
+    Do 3 commands one each which is mentioned to run in cmd after doing the above
+    When submitting the project remove the node_modules folder and then install it during the viva by 
+    1 npm install
+    2 npm run dev
+2 We can remove the things inside the assets folder and icons inside the components folder
+3 frontend running on the vue server - npm run dev
+4 Delete everything from assets and components folders. 
+    Delete views folder. 
+    Clear everything from app.vue 
+    Clear import assets line from main.js
+    Change the title in index.html
+5 Now create the app 
+    Import bootstrap to index.html
+    Remove dict for path /about  and import homevue in index.js
+6 Create the first component HomeView.vue 
+    Instead of action in form we use @submit.prevent="loginAdmin" for js app. 
+7 Create AdminLogin.vue
+    In home comp. we only export the name of the component.
+    But for the login we have to export the entire things - name,data,methods - take the error messages from the backend and alert it
+    export the entire data (var mentioned in the template )and methods used.
+    Keep login function as asynchronous as it wont affect other operations
+    If we use 'token' as the name for saving token in local storage for all cases, then when we login as admin it stores admin token and when we loged as user in another tab then it will replace
+    the value of token in dict with user token. so in this case the admin will get logged out from the first tab as the token for admin no longer.
+    So by using different names for different tokens to store, we can open admin, user, manager simultaneously in diff tabs
+
+8 add proxy in vite config file 
+
+
+
+
+index.js contains is creating all the defined routes with its path  
+router view comes from App.vue
+<router-view> 
+<router-link> To link the template to a router. And define those routes in the index.js
+To use codeium: 
+    select the code
+    cntrl + i
+    write the command
+
+9 in category listing in the admin dashboard, after we deleted a cateory, it wont get updated till the
+    we refresh the page. it is because of the cache time we gave for the category listing in the backend.
+    use cache.clear() or any other method to clear the cache.
+
+All the functions which are clicking and disnction of it will be async. That is, operations will happen after clicking in somewehere
+________________________________________________________________________________________________________________
+
+/api/category/${this.$route.params.id} - is the way to tak the parameters from the path. 
+
+You can add a confirmation dialog using the built-in window.confirm() function
+
+
+By using bootstrap model, i can reduce the num of components, by adding everythin in one page.
+
+
+
+
+terminals - redis-server, python3 main.py, celery -A main.celery worker --loglevel=info, celery -A main.celery beat --loglevel=info, mailhog,npm run dev 
+
+
+If the redis is already running in the default port 6379, then we have to stop it by the command:
+                    sudo service redis-server stop
+Then restart : redis-server
+
+
+Use computed() for search tab to show the things which we search without any button.
+
+To add style in vue page can use <style> tag in vue file

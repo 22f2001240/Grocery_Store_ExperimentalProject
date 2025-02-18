@@ -16,6 +16,14 @@ class Users(db.Model):
     category_request_ids=db.relationship("Category_request",backref="users",lazy=True)
     orders_ids=db.relationship("Orders",cascade="all,delete-orphan",backref="users",lazy=True)
     #last_seen=db.Column(db.String(),default=datetime.now(),nullable=False) #For whther the user visited the site or not
+    def convert_to_json(self):
+        return{
+            "id":self.id,
+            "email_id":self.email_id,
+            "name":self.name,
+            "role":self.role,
+            "status":self.status
+        }
 
 #Entity 2 - Category table
 class Category(db.Model):
@@ -39,7 +47,7 @@ class Product(db.Model):
     price=db.Column(db.Integer,nullable=False)
     unit=db.Column(db.String,nullable=False) #kg,g,m
     stock=db.Column(db.Integer,nullable=False)
-    sold=db.Column(db.Integer,nullable=False) #num of sold items
+    sold=db.Column(db.Integer,nullable=False,default=0) #num of sold items
     category_id=db.Column(db.Integer,db.ForeignKey("category.id"),nullable=False)
     manager_id=db.Column(db.Integer,db.ForeignKey("users.id"),nullable=False)
     #
@@ -55,7 +63,8 @@ class Product(db.Model):
             "unit":self.unit,
             "stock":self.stock,
             "number_of_sold_items":self.sold,
-            "category_id":self.category_id
+            "category_id":self.category_id,
+            "category_name":self.category.name,
         }
 
 #Entity 4 - Cart table
@@ -74,6 +83,7 @@ class Cart(db.Model):
             "product_name":self.product.name,
             "product_price":self.product.price,
             "product_unit":self.product.unit,
+            "product_stock":self.product.stock,
         }
 
 class Orders(db.Model):
@@ -102,14 +112,16 @@ class Category_request(db.Model):
     name=db.Column(db.String,nullable=True)
     category_id=db.Column(db.Integer,nullable=True)
     action=db.Column(db.String,nullable=False) #CRUD
-    status=db.Column(db.String,nullable=True) #approved rejected
+    status=db.Column(db.String,nullable=True,default='PENDING') #approved rejected
     manager_id=db.Column(db.Integer,db.ForeignKey("users.id"),nullable=False)
     def convert_to_json(self):
         return{
             "id":self.id,
             "name":self.name,
             "category_id":self.category_id,
+            # "category_name":self.category.name if self.category else None,
             "action":self.action,
             "status":self.status,
-            "manager_id":self.manager_id
+            "manager_id":self.manager_id,
+            "manager_name":self.users.name
         }

@@ -11,8 +11,8 @@ def roles_required(allowed_roles):
         @wraps(fn)
         @jwt_required()
         def wrapper(*args,**kwargs):
-            if get_jwt().get("role") not in allowed_roles:
-                return {"message":"Access denied!"},403
+            if get_jwt_identity().get('role') not in allowed_roles:
+                return {"message":get_jwt_identity().get('role')},403
             return fn(*args,**kwargs)
         return wrapper
     return decorator
@@ -21,24 +21,24 @@ class CartAPI(Resource):
     @jwt_required()  
     @roles_required(['customer'])
     @cache.cached(timeout=120)
-    def get(self):  
-        current_user_id=get_jwt_identity()     
-        carts=Cart.query.all()
+    def get(self):      
+        current_user_id=get_jwt_identity().get('user_id')
+        carts=Cart.query.filter_by(user_id=current_user_id).all()
         carts_json=[]
         cart_total=0
         for item in carts:
             carts_json.append(item.convert_to_json()) 
             cart_total+= item.quantity * item.product.price
-        return {"Cart Products":carts_json,"Total cart value":cart_total}, 200
+        return {"cart_products":carts_json,"total":cart_total}, 200
       
     @jwt_required()    
     @roles_required(['customer'])
     def post(self):
-        current_user_id=get_jwt_identity()
+        current_user_id=get_jwt_identity().get('user_id')
         data=request.json
         required_fields = ['quantity','product_id']
         if not all(field in data for field in required_fields):
-            return {'message': 'Bad request! All fields are required.'}, 400
+            return {'message': "Missing some required fields"}, 400
         quantity=data.get('quantity')
         product_id=data.get('product_id')
         if quantity < 1:
@@ -50,16 +50,18 @@ class CartAPI(Resource):
         if cart:
             cart.quantity=quantity
             db.session.commit()
+            cache.clear()
             return {'message':"Quantity updated successfully"},200
         new_item=Cart(quantity=quantity,product_id=product_id,user_id=current_user_id)
         db.session.add(new_item)
         db.session.commit()
+        cache.clear()
         return {'message':"Item Added successfully into the cart"},201
     
     @jwt_required()  
     @roles_required(['customer'])  
     def patch(self,cart_id):    
-        current_user_id=get_jwt_identity() 
+        current_user_id=get_jwt_identity().get('user_id')
         cart=Cart.query.filter_by(id=cart_id,user_id=current_user_id).first()
         if not cart:
             return {'message':'Cart not found'},404
@@ -70,12 +72,13 @@ class CartAPI(Resource):
         quantity=data.get('quantity')
         cart.quantity=quantity
         db.session.commit()
+        cache.clear()
         return {'message':"Quantity updated successfully"},200
     
     @jwt_required()   
     @roles_required(['customer']) 
     def delete(self,cart_id): 
-        current_user_id=get_jwt_identity() 
+        current_user_id=get_jwt_identity().get('user_id')
         cart=Cart.query.filter_by(id=cart_id,user_id=current_user_id).first()
         if not cart :
             return {'message':'Cart not found'},404
@@ -83,4 +86,6 @@ class CartAPI(Resource):
             return {'message': 'Permission denied'}, 401
         db.session.delete(cart)
         db.session.commit()
+        # Clear cache after deletion
+        cache.clear()
         return {'message':"Product removed from cart successfully"},200

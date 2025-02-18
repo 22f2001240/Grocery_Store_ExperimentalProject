@@ -6,3 +6,12 @@ TypeError: dict expected at most 1 argument, got 2
 For this error we shoudl change
         html_report=jinja_template.render(username,data) ==> html_report=jinja_template.render(username=username,data=data)
         get_html_report(customer.name,order_details) ==> get_html_report(username=customer.name,data=order_details)
+
+3 "Missing Authorization Header" means the url require jwt_required(). Have to authenticate first. Need a token to enter
+
+4 things related to CORS is under vite.config.js
+
+5 422 - Inprocessable entity . 
+
+6 internal error - response.ok is false: 
+    'Authorization': `Bearer ${localStorage.getItem('adminToken')}` == instead of == 'Authorization': `Bearer ${localStorage.getItem(adminToken)}`

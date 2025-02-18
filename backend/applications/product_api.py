@@ -7,13 +7,13 @@ import re
 from functools import wraps
 from .api import *
 
-def roles_required(allowed_roles): #Authorization RBAC-Role Based Access Control
+def roles_required(allowed_roles): 
     def decorator(fn):
         @wraps(fn)
         @jwt_required()
         def wrapper(*args,**kwargs):
-            if get_jwt().get("role") not in allowed_roles:
-                return {"message":"Access denied!"},403
+            if get_jwt_identity().get('role') not in allowed_roles:
+                return {"message":get_jwt_identity().get('role')},403
             return fn(*args,**kwargs)
         return wrapper
     return decorator
@@ -22,10 +22,10 @@ class ProductAPI(Resource):
     @jwt_required()  
     @cache.cached(timeout=120)
     def get(self): 
-        if get_jwt().get("role") in ['admin','customer']:       
+        if get_jwt_identity().get('role') in ['admin','customer']:       
             products=Product.query.all()
-        if get_jwt().get("role") == 'manager':
-            products=Product.query.filter_by(manager_id=get_jwt_identity())
+        if get_jwt_identity().get('role') == 'manager':
+            products=Product.query.filter_by(manager_id=get_jwt_identity().get('user_id'))
         products_json=[]
         for prod in products:
             products_json.append(prod.convert_to_json()) 
@@ -34,25 +34,23 @@ class ProductAPI(Resource):
     @jwt_required()    #Only admin can create the category. To do this authorization is required instead of autherization. We have to check if the authenticated user has the permission to access this content / page.
     @roles_required(['manager'])
     def post(self):
-        current_user_id=get_jwt_identity()
+        current_user_id=get_jwt_identity().get('user_id')
         print(current_user_id)
         data=request.json
-        required_fields = ['name','description','price','unit','stock','sold','category_id']
+        required_fields = ['name','description','price','unit','stock','category_id']
         if not all(field in data for field in required_fields):
             return {'message': 'Bad request! All fields are required.'}, 400
-        name,description,price,unit,stock,sold,category_id = data.get('name'),data.get('description'),data.get('price'),data.get('unit'),data.get('stock'),data.get('sold'),data.get('category_id')
+        name,description,price,unit,stock,sold,category_id = data.get('name'),data.get('description'),data.get('price'),data.get('unit'),data.get('stock'),0,data.get('category_id')
         if len(name) > 100 or len(name) < 3:
             return {'message': 'Product name must be at most 100 characters and atleast 3 characters long!'}, 400
         if price < 1:
             return {'message': 'Invalid Price!!'}, 400
         if stock < 0:
             return {'message': 'Invalid Stock Value!!'}, 400
-        if sold < 0:
-            return {'message': 'Invalid Value!!'}, 400
         
         category = Category.query.get(category_id)
         if not category:
-            return {'message':'Category not found'},404
+            return {'message':"Invalid Category !!"},404
         new_product=Product(name=name,description=description,price=price,unit=unit,stock=stock,sold=sold,category_id=category_id,manager_id=current_user_id)
         db.session.add(new_product)
         db.session.commit()
@@ -61,7 +59,7 @@ class ProductAPI(Resource):
     @jwt_required()  
     @roles_required(['manager'])  
     def put(self,product_id):    
-        current_user_id=get_jwt_identity() 
+        current_user_id=get_jwt_identity().get('user_id')
         product=Product.query.get(product_id)
         if not product:
             return {'message': 'Product does not exists!'}, 404
@@ -81,7 +79,7 @@ class ProductAPI(Resource):
     @jwt_required()   
     @roles_required(['manager']) 
     def delete(self,product_id): 
-        current_user_id=get_jwt_identity() 
+        current_user_id=get_jwt_identity().get('user_id')
         product = Product.query.get(product_id)
         if not product:
             return {'message': 'Product does not exists!'}, 404
@@ -91,14 +89,26 @@ class ProductAPI(Resource):
         db.session.commit()
         return {'message':"Product deleted successfully"},200
 
+class ProductManagerAPI(Resource):
+    @jwt_required()
+    @roles_required(['manager'])
+    def get(self):
+        manager_id= get_jwt_identity().get('user_id')
+        products = Product.query.filter_by(manager_id=manager_id).all()
+        products_json=[]
+        for prod in products:
+            products_json.append(prod.convert_to_json())
+        return products_json, 200
+    
+
 # To call the export data of products for each manager from task
 class ExportDataAPI(Resource):
     @jwt_required()
     def get(self): 
-        if get_jwt().get("role") != 'manager':
+        if get_jwt_identity().get('role') != 'manager':
             return {'message':'Access Denied'}, 401
-        products=Product.query.filter_by(manager_id=get_jwt_identity()).all()
-        manager=Users.query.get(get_jwt_identity())
+        products=Product.query.filter_by(manager_id=get_jwt_identity().get('user_id')).all()
+        manager=Users.query.get(get_jwt_identity().get('user_id'))
         if manager:
             product_details=[]
             for product in products:
